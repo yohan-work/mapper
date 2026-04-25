@@ -13,7 +13,30 @@ export interface MapViewProps {
   selectedMode?: TravelMode;
   onReady?: (map: kakao.maps.Map) => void;
   onClick?: (pos: LngLat) => void;
+  hideOverlays?: boolean;
+  hideNearby?: boolean;
+  hideTopBadges?: boolean;
 }
+
+type NearbyCategory = "SW8" | "CE7" | "FD6" | "PK6";
+
+type NearbyPlace = {
+  id: string;
+  label: string;
+  subLabel: string;
+  lat: number;
+  lng: number;
+};
+
+const CATEGORY_META: Record<
+  NearbyCategory,
+  { label: string; badgeTone: "station" | "poi" }
+> = {
+  SW8: { label: "지하철역", badgeTone: "station" },
+  CE7: { label: "카페", badgeTone: "poi" },
+  FD6: { label: "식당", badgeTone: "poi" },
+  PK6: { label: "주차장", badgeTone: "poi" },
+};
 
 export default function MapView({
   center,
@@ -24,11 +47,18 @@ export default function MapView({
   selectedMode,
   onReady,
   onClick,
+  hideOverlays = false,
+  hideNearby = false,
+  hideTopBadges = false,
 }: MapViewProps) {
   const [mapReady, setMapReady] = useState(false);
   const [trafficEnabled, setTrafficEnabled] = useState(true);
   const [bicycleEnabled, setBicycleEnabled] = useState(false);
-  const [subwayEnabled, setSubwayEnabled] = useState(selectedMode === "subway");
+  const [activeNearbyCategory, setActiveNearbyCategory] = useState<NearbyCategory | null>(
+    selectedMode === "subway" ? "SW8" : "CE7",
+  );
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<kakao.maps.Map | null>(null);
   const clickHandlerRef = useRef<((mouseEvent: { latLng: kakao.maps.LatLng }) => void) | null>(
@@ -38,7 +68,7 @@ export default function MapView({
     Map<string, { marker: kakao.maps.Marker; overlay: kakao.maps.CustomOverlay }>
   >(new Map());
   const routeRef = useRef<Map<string, kakao.maps.Polyline>>(new Map());
-  const subwayRef = useRef<
+  const nearbyRef = useRef<
     Map<string, { marker: kakao.maps.Marker; overlay: kakao.maps.CustomOverlay }>
   >(new Map());
   const destRef = useRef<{
@@ -100,7 +130,7 @@ export default function MapView({
       for (const polyline of routeRef.current.values()) {
         polyline.setMap(null);
       }
-      for (const { marker, overlay } of subwayRef.current.values()) {
+      for (const { marker, overlay } of nearbyRef.current.values()) {
         marker.setMap(null);
         overlay.setMap(null);
       }
@@ -112,7 +142,7 @@ export default function MapView({
       setMapReady(false);
       markersRef.current.clear();
       routeRef.current.clear();
-      subwayRef.current.clear();
+      nearbyRef.current.clear();
       destRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -120,7 +150,7 @@ export default function MapView({
 
   useEffect(() => {
     if (selectedMode === "subway") {
-      setSubwayEnabled(true);
+      setActiveNearbyCategory("SW8");
     }
   }, [selectedMode]);
 
@@ -234,49 +264,61 @@ export default function MapView({
     const kakao = window.kakao;
     if (!mapReady || !map || !kakao) return;
 
-    const clearStations = () => {
-      for (const { marker, overlay } of subwayRef.current.values()) {
+    const clearNearby = () => {
+      for (const { marker, overlay } of nearbyRef.current.values()) {
         marker.setMap(null);
         overlay.setMap(null);
       }
-      subwayRef.current.clear();
+      nearbyRef.current.clear();
+      setNearbyPlaces([]);
     };
 
-    if (!subwayEnabled || !destination) {
-      clearStations();
+    if (!destination || !activeNearbyCategory) {
+      clearNearby();
       return;
     }
 
     let cancelled = false;
+    setNearbyLoading(true);
     const places = new kakao.maps.services.Places();
     places.categorySearch(
-      "SW8",
+      activeNearbyCategory,
       (result, status) => {
         if (cancelled) return;
-        clearStations();
+        clearNearby();
+        setNearbyLoading(false);
         if (status !== kakao.maps.services.Status.OK) return;
 
-        for (const station of result.slice(0, 6)) {
-          const position = new kakao.maps.LatLng(Number(station.y), Number(station.x));
+        const nextPlaces = result.slice(0, 5).map((place) => ({
+          id: place.id,
+          label: place.place_name,
+          subLabel: place.road_address_name || place.address_name || "",
+          lat: Number(place.y),
+          lng: Number(place.x),
+        }));
+
+        setNearbyPlaces(nextPlaces);
+        for (const place of nextPlaces) {
+          const position = new kakao.maps.LatLng(place.lat, place.lng);
           const marker = new kakao.maps.Marker({
             map,
             position,
-            title: station.place_name,
+            title: place.label,
           });
           const overlay = new kakao.maps.CustomOverlay({
             map,
             position,
             xAnchor: 0.5,
             yAnchor: 1.8,
-            content: buildBadge(station.place_name, "station"),
+            content: buildBadge(place.label, CATEGORY_META[activeNearbyCategory].badgeTone),
           });
-          subwayRef.current.set(station.id, { marker, overlay });
+          nearbyRef.current.set(place.id, { marker, overlay });
         }
       },
       {
         location: new kakao.maps.LatLng(destination.lat, destination.lng),
-        radius: 2200,
-        size: 6,
+        radius: activeNearbyCategory === "PK6" ? 3000 : 2200,
+        size: 5,
         sort: kakao.maps.services.SortBy.DISTANCE,
       },
     );
@@ -284,7 +326,7 @@ export default function MapView({
     return () => {
       cancelled = true;
     };
-  }, [subwayEnabled, destination?.lat, destination?.lng, mapReady]);
+  }, [activeNearbyCategory, destination?.lat, destination?.lng, mapReady]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -292,13 +334,7 @@ export default function MapView({
     if (!mapReady || !map || !kakao || fittedRef.current) return;
 
     if (me && destination) {
-      const bounds = new kakao.maps.LatLngBounds();
-      bounds.extend(new kakao.maps.LatLng(me.lat, me.lng));
-      bounds.extend(new kakao.maps.LatLng(destination.lat, destination.lng));
-      for (const peer of peers) {
-        bounds.extend(new kakao.maps.LatLng(peer.lat, peer.lng));
-      }
-      map.setBounds(bounds, 80, 80, 80, 80);
+      fitToMeeting();
       fittedRef.current = true;
     }
   }, [me, destination, peers, mapReady]);
@@ -323,48 +359,220 @@ export default function MapView({
     initialCenterAppliedRef.current = true;
   }, [center, destination, mapReady]);
 
+  function panToTarget(next: LngLat) {
+    const map = mapRef.current;
+    const kakao = window.kakao;
+    if (!map || !kakao) return;
+    map.panTo(new kakao.maps.LatLng(next.lat, next.lng));
+  }
+
+  function fitToMeeting() {
+    const map = mapRef.current;
+    const kakao = window.kakao;
+    if (!map || !kakao || !destination) return;
+
+    const bounds = new kakao.maps.LatLngBounds();
+    bounds.extend(new kakao.maps.LatLng(destination.lat, destination.lng));
+    if (me) {
+      bounds.extend(new kakao.maps.LatLng(me.lat, me.lng));
+    }
+    for (const peer of peers) {
+      bounds.extend(new kakao.maps.LatLng(peer.lat, peer.lng));
+    }
+    map.setBounds(bounds, 120, 80, 320, 80);
+  }
+
   return (
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" />
-      <div className="absolute right-4 top-4 z-10 flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={() => setTrafficEnabled((v) => !v)}
-          className={`rounded-full border px-3 py-2 text-xs font-semibold shadow-[0_10px_24px_rgba(15,23,42,0.16)] ${
-            trafficEnabled
-              ? "border-[var(--accent)] bg-white text-[var(--accent)]"
-              : "border-[var(--border-soft)] bg-white text-[var(--text-muted)]"
-          }`}
-        >
-          교통
-        </button>
-        <button
-          type="button"
-          onClick={() => setBicycleEnabled((v) => !v)}
-          className={`rounded-full border px-3 py-2 text-xs font-semibold shadow-[0_10px_24px_rgba(15,23,42,0.16)] ${
-            bicycleEnabled
-              ? "border-[var(--accent)] bg-white text-[var(--accent)]"
-              : "border-[var(--border-soft)] bg-white text-[var(--text-muted)]"
-          }`}
-        >
-          자전거
-        </button>
-        {selectedMode === "subway" && (
-          <button
-            type="button"
-            onClick={() => setSubwayEnabled((v) => !v)}
-            className={`rounded-full border px-3 py-2 text-xs font-semibold shadow-[0_10px_24px_rgba(15,23,42,0.16)] ${
-              subwayEnabled
-                ? "border-[var(--accent)] bg-white text-[var(--accent)]"
-                : "border-[var(--border-soft)] bg-white text-[var(--text-muted)]"
-            }`}
-          >
-            역
-          </button>
-        )}
-      </div>
+
+      {!hideOverlays && !hideTopBadges && (
+        <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-6rem)] flex-wrap gap-2 sm:left-4 sm:top-4 sm:max-w-[calc(100%-7rem)]">
+          {destination && (
+            <div className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-[var(--text-strong)] shadow-[var(--shadow-card)]">
+              {destination.label ?? "목적지"}
+            </div>
+          )}
+          {selectedMode && (
+            <div className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-[var(--accent)] shadow-[var(--shadow-card)]">
+              {modeLabel(selectedMode)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!hideOverlays && (
+        <>
+          <div className="absolute right-3 top-14 z-10 hidden flex-col gap-2 sm:right-4 sm:top-4 sm:flex">
+            <div className="pointer-events-auto rounded-2xl bg-white p-2 shadow-[var(--shadow-card)]">
+              <div className="flex flex-col gap-2">
+                <MapControlButton
+                  active={trafficEnabled}
+                  label="교통"
+                  onClick={() => setTrafficEnabled((value) => !value)}
+                />
+                <MapControlButton
+                  active={bicycleEnabled}
+                  label="자전거"
+                  onClick={() => setBicycleEnabled((value) => !value)}
+                />
+              </div>
+            </div>
+            <div className="pointer-events-auto rounded-2xl bg-white p-2 shadow-[var(--shadow-card)]">
+              <div className="flex flex-col gap-2">
+                {me && <MapControlButton label="내 위치" onClick={() => panToTarget(me)} />}
+                {destination && (
+                  <MapControlButton
+                    label="전체 보기"
+                    onClick={() => {
+                      fitToMeeting();
+                      fittedRef.current = true;
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="pointer-events-auto absolute right-3 top-14 z-10 flex flex-col gap-2 sm:hidden">
+            <div className="rounded-2xl bg-white p-1.5 shadow-[var(--shadow-card)]">
+              <div className="flex flex-col gap-1.5">
+                <MapControlButton
+                  active={trafficEnabled}
+                  label="교통"
+                  onClick={() => setTrafficEnabled((value) => !value)}
+                />
+                <MapControlButton
+                  active={bicycleEnabled}
+                  label="자전거"
+                  onClick={() => setBicycleEnabled((value) => !value)}
+                />
+                {me && <MapControlButton label="내 위치" onClick={() => panToTarget(me)} />}
+                {destination && (
+                  <MapControlButton
+                    label="전체"
+                    onClick={() => {
+                      fitToMeeting();
+                      fittedRef.current = true;
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {destination && !hideNearby && (
+            <div className="pointer-events-auto absolute bottom-[calc(env(safe-area-inset-bottom)+220px)] left-3 right-3 z-10 rounded-3xl bg-white p-4 shadow-[var(--shadow-float)] sm:bottom-5 sm:left-4 sm:right-auto sm:w-[calc(100%-1rem)] sm:max-w-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-[var(--text-strong)] sm:text-base">
+                    목적지 주변 빠른 탐색
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--text-muted)] sm:text-sm">
+                    카카오 장소 카테고리로 바로 확인합니다.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fitToMeeting()}
+                  className="shrink-0 rounded-full bg-[var(--surface-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)]"
+                >
+                  약속 기준
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(Object.keys(CATEGORY_META) as NearbyCategory[]).map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setActiveNearbyCategory(category)}
+                    className={`rounded-full px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                      activeNearbyCategory === category
+                        ? "bg-[var(--accent)] text-white"
+                        : "bg-[var(--surface-muted)] text-[var(--text-muted)]"
+                    }`}
+                  >
+                    {CATEGORY_META[category].label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {nearbyLoading && (
+                  <div className="rounded-2xl bg-[var(--surface-muted)] px-3 py-3 text-sm text-[var(--text-muted)]">
+                    주변 장소를 불러오는 중…
+                  </div>
+                )}
+
+                {!nearbyLoading && nearbyPlaces.length === 0 && (
+                  <div className="rounded-2xl bg-[var(--surface-muted)] px-3 py-3 text-sm text-[var(--text-muted)]">
+                    주변 장소가 없거나 아직 불러오지 못했습니다.
+                  </div>
+                )}
+
+                {!nearbyLoading &&
+                  nearbyPlaces.slice(0, 2).map((place, index) => (
+                    <button
+                      key={place.id}
+                      type="button"
+                      onClick={() => panToTarget(place)}
+                      className="flex w-full items-center justify-between rounded-2xl bg-[var(--surface-muted)] px-3 py-3 text-left transition active:bg-[#e8ebee]"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-[var(--text-strong)]">
+                          {place.label}
+                        </div>
+                        <div className="mt-1 truncate text-xs text-[var(--text-muted)]">
+                          {place.subLabel || CATEGORY_META[activeNearbyCategory ?? "CE7"].label}
+                        </div>
+                      </div>
+                      <span className="ml-3 shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[var(--text-muted)]">
+                        {index + 1}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
+}
+
+function MapControlButton({
+  active = false,
+  label,
+  onClick,
+}: {
+  active?: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
+        active
+          ? "bg-[var(--accent)] text-white"
+          : "bg-[var(--surface-muted)] text-[var(--text-muted)]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function modeLabel(mode: TravelMode) {
+  return mode === "driving"
+    ? "자동차"
+    : mode === "walking"
+      ? "도보"
+      : mode === "cycling"
+        ? "자전거"
+        : "지하철";
 }
 
 function applyRoutes(
@@ -419,14 +627,14 @@ function applyRoutes(
   }
 }
 
-function buildBadge(label: string, tone: "destination" | "participant" | "station") {
+function buildBadge(label: string, tone: "destination" | "station" | "poi") {
   const wrapper = document.createElement("div");
   wrapper.className =
     tone === "destination"
       ? "rounded-full border border-[#111827] bg-white px-3 py-1.5 text-xs font-semibold text-[#111827] shadow-[0_10px_24px_rgba(15,23,42,0.16)]"
       : tone === "station"
-        ? "rounded-full border border-[#0ea5e9] bg-white px-3 py-1.5 text-xs font-semibold text-[#0369a1] shadow-[0_10px_24px_rgba(15,23,42,0.16)]"
-      : "rounded-full border border-[#dbe2ea] bg-white px-3 py-1.5 text-xs font-semibold text-[#111827] shadow-[0_10px_24px_rgba(15,23,42,0.16)]";
+        ? "rounded-full border border-[#3182f6] bg-[#eff6ff] px-3 py-1.5 text-xs font-semibold text-[#1b64da] shadow-[0_10px_24px_rgba(15,23,42,0.16)]"
+        : "rounded-full border border-[#dbe2ea] bg-white px-3 py-1.5 text-xs font-semibold text-[#111827] shadow-[0_10px_24px_rgba(15,23,42,0.16)]";
   wrapper.textContent = label;
   return wrapper;
 }

@@ -23,49 +23,50 @@ export default function MyMeetingsPanel({
     meetings.find((meeting) => meeting.id === selectedMeetingId) ?? meetings[0] ?? null;
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-[var(--border-soft)] bg-[var(--surface)] shadow-[0_12px_32px_rgba(15,23,42,0.14)]">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between px-5 py-4 text-left"
-      >
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-muted)]">
-            My Meetings
+    <section className="overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-float)]">
+      <div className="flex w-full items-start justify-between gap-3 px-5 py-4 text-left">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-[var(--text-strong)]">내 약속</h2>
+            <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-muted)]">
+              {loading ? "불러오는 중" : `${meetings.length}개`}
+            </span>
           </div>
-          <h2 className="mt-1 text-lg font-semibold text-[var(--text-strong)]">
-            내가 속한 활성 약속
-          </h2>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
+          <p className="mt-1 truncate text-sm text-[var(--text-muted)]">
             {loading
               ? "약속을 불러오는 중입니다."
               : meetings.length === 0
-                ? "활성 약속이 아직 없습니다."
+                ? "참여 중인 약속이 없습니다."
                 : selectedMeeting
-                  ? `${meetings.length}개 중 ${selectedMeeting.title}`
+                  ? selectedMeeting.title
                   : `${meetings.length}개의 활성 약속`}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-[var(--surface-muted)] px-3 py-1 text-xs font-medium text-[var(--text-muted)]">
-          {expanded ? "접기" : "열기"}
-        </span>
-      </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label="닫기"
+          className="shrink-0 rounded-full bg-[var(--surface-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)]"
+        >
+          닫기
+        </button>
+      </div>
 
       {expanded && (
-        <div className="max-h-[28vh] overflow-auto border-t border-[var(--border-soft)] px-3 py-3 space-y-2 bg-[var(--surface)]">
+        <div className="max-h-[50vh] space-y-2 overflow-auto px-3 pb-4">
           {loading && (
-            <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-4 text-sm text-[var(--text-muted)]">
+            <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-4 text-sm text-[var(--text-muted)]">
               약속을 불러오는 중…
             </div>
           )}
 
           {!loading && meetings.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-4">
+            <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-4">
               <div className="text-sm font-medium text-[var(--text-strong)]">
                 아직 참여 중인 활성 약속이 없습니다.
               </div>
               <div className="mt-1 text-sm text-[var(--text-muted)]">
-                아래에서 빠르게 새 약속을 만들거나, 초대 코드로 참여하세요.
+                메뉴에서 새 약속을 만들거나 초대 코드로 참여하세요.
               </div>
             </div>
           )}
@@ -76,38 +77,41 @@ export default function MyMeetingsPanel({
               <button
                 key={meeting.id}
                 onClick={() => onSelect(meeting.id)}
-                className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                className={`w-full rounded-2xl px-4 py-3 text-left transition ${
                   active
-                    ? "border-[var(--accent)] bg-[#eef5ff]"
-                    : "border-[var(--border-soft)] bg-[var(--surface)] hover:bg-[var(--surface-muted)]"
+                    ? "bg-[#eef5ff]"
+                    : "bg-[var(--surface-muted)] active:bg-[#e8ebee]"
                 }`}
               >
                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                   <span
                     className={`rounded-full px-2 py-1 ${
                       meeting.status === "active"
-                        ? "bg-[#eef5ff] text-[var(--accent)]"
-                        : "bg-slate-100 text-slate-600"
+                        ? "bg-white text-[var(--accent)]"
+                        : "bg-white text-[var(--text-muted)]"
                     }`}
                   >
                     {meeting.status === "active" ? "진행 중" : "예정"}
                   </span>
-                  <span
-                    className={`rounded-full px-2 py-1 ${
-                      meeting.visibility === "public"
-                        ? "bg-[#eef5ff] text-[var(--accent)]"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
+                  <span className="rounded-full bg-white px-2 py-1 text-[var(--text-muted)]">
                     {meeting.visibility === "public" ? "공개" : "비공개"}
                   </span>
-                  <span>코드 {meeting.join_code}</span>
+                  <span className="truncate">코드 {meeting.join_code}</span>
                 </div>
-                <div className="mt-2 text-base font-semibold text-[var(--text-strong)]">
-                  {meeting.title}
-                </div>
-                <div className="mt-1 text-sm text-[var(--text-muted)] line-clamp-1">
-                  {meeting.destination_label}
+                <div className="mt-2 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-base font-semibold text-[var(--text-strong)]">
+                      {meeting.title}
+                    </div>
+                    <div className="mt-1 line-clamp-1 text-sm text-[var(--text-muted)]">
+                      {meeting.destination_label}
+                    </div>
+                  </div>
+                  {active && (
+                    <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-semibold text-white">
+                      선택됨
+                    </span>
+                  )}
                 </div>
                 <div className="mt-2 text-xs text-[var(--text-muted)]">
                   {formatSchedule(meeting.scheduled_at)}

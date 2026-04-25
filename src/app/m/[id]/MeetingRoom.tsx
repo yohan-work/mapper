@@ -273,7 +273,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
   );
 
   return (
-    <main className="fixed inset-0">
+    <main className="fixed inset-0 h-[100dvh]">
       <MapView
         center={myPayload ?? undefined}
         destination={{
@@ -287,7 +287,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
         selectedMode={travelMode}
       />
       {geoError && (
-        <div className="absolute left-3 right-3 top-3 z-20 mx-auto max-w-md rounded-2xl border border-amber-200 bg-white/96 px-4 py-3 text-sm text-amber-700 shadow-[var(--shadow-float)] backdrop-blur">
+        <div className="absolute left-3 right-3 top-3 z-20 mx-auto max-w-md rounded-2xl bg-white px-4 py-3 text-sm text-amber-700 shadow-[var(--shadow-card)]">
           위치 권한이 필요합니다: {geoError}
         </div>
       )}
