@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "maplibre-gl/dist/maplibre-gl.css";
-
 html,
 body {
   height: 100%;
@@ -17,12 +15,9 @@ body {
 }
 
 #__next,
-body > div:first-child {
+body > div:first-child,
+body > nextjs-portal {
   height: 100%;
-}
-
-.maplibregl-ctrl-attrib {
-  font-size: 10px;
 }
 
 :root {

@@ -1,4 +1,4 @@
-export type TravelMode = "driving" | "walking" | "cycling";
+export type TravelMode = "driving" | "walking" | "cycling" | "subway";
 export type MeetingVisibility = "private" | "public";
 export type MeetingStatus = "scheduled" | "active" | "closed";
 
@@ -54,11 +54,22 @@ export interface Route {
   coordinates: [number, number][];
   distanceMeters: number;
   durationSeconds: number;
+  provider?: "ors" | "osrm" | "estimated" | "subway-beta";
+  isEstimated?: boolean;
+  summaryLabel?: string;
+  detailLabel?: string;
+  legs?: Array<{
+    type: "walking_to_station" | "subway" | "walking_to_destination";
+    label: string;
+    durationSeconds: number;
+    distanceMeters: number;
+  }>;
 }
 
 export interface PlaceSearchResult {
   id: string;
   label: string;
+  subLabel?: string;
   lat: number;
   lng: number;
 }

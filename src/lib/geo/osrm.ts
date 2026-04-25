@@ -2,17 +2,18 @@ import type { LngLat, Route, TravelMode } from "@/types";
 
 const OSRM_BASE = "https://router.project-osrm.org";
 
-const PROFILE: Record<TravelMode, string> = {
+const PROFILE: Record<Exclude<TravelMode, "subway">, string> = {
   driving: "driving",
   walking: "foot",
   cycling: "bike",
 };
 
-export async function fetchRoute(
+export async function fetchOsrmRoute(
   from: LngLat,
   to: LngLat,
   mode: TravelMode,
 ): Promise<Route | null> {
+  if (mode === "subway") return null;
   const profile = PROFILE[mode] ?? "driving";
   const url = `${OSRM_BASE}/route/v1/${profile}/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`;
   try {
@@ -25,6 +26,8 @@ export async function fetchRoute(
       coordinates: route.geometry.coordinates as [number, number][],
       distanceMeters: route.distance,
       durationSeconds: route.duration,
+      provider: "osrm",
+      isEstimated: false,
     };
   } catch {
     return null;

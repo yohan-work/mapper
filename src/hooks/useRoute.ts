@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchRoute } from "@/lib/geo/osrm";
+import { fetchRoute } from "@/lib/geo/routeClient";
 import type { LngLat, Route, TravelMode } from "@/types";
 
 /**

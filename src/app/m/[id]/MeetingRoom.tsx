@@ -7,7 +7,7 @@ import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase/client"
 import { useMyLocation } from "@/hooks/useMyLocation";
 import { useMeetingChannel } from "@/hooks/useMeetingChannel";
 import { haversine } from "@/lib/geo/geolocation";
-import { fetchRoute } from "@/lib/geo/osrm";
+import { fetchRoute } from "@/lib/geo/routeClient";
 import type {
   LocationPayload,
   Meeting,
@@ -182,11 +182,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
         }),
       );
       if (cancelled) return;
-      setRoutes((prev) => {
-        const next = { ...prev };
-        for (const [uid, r] of results) next[uid] = r;
-        return next;
-      });
+      setRoutes(Object.fromEntries(results));
     })();
     return () => {
       cancelled = true;
@@ -288,6 +284,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
         me={myPayload}
         peers={peerList}
         routes={routes}
+        selectedMode={travelMode}
       />
       {geoError && (
         <div className="absolute top-3 left-3 right-3 z-20 mx-auto max-w-md px-4 py-2.5 rounded-xl bg-amber-900/80 border border-amber-700 text-amber-100 text-sm">

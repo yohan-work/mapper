@@ -14,6 +14,9 @@ export interface EtaRow {
 }
 
 export default function EtaCard({ row }: { row: EtaRow }) {
+  const subtitle = row.route
+    ? `${formatEta(row.route.durationSeconds)} · ${formatDistance(row.route.distanceMeters)}${row.route.isEstimated ? " · 추정" : ""}`
+    : "경로 계산 중…";
   return (
     <div className="flex items-center gap-3 py-2">
       <div
@@ -31,19 +34,27 @@ export default function EtaCard({ row }: { row: EtaRow }) {
           <span className="text-xs">{modeEmoji(row.travelMode)}</span>
         </div>
         <div className="text-xs text-slate-400">
-          {row.arrived
-            ? "도착 완료"
-            : row.route
-              ? `${formatEta(row.route.durationSeconds)} · ${formatDistance(row.route.distanceMeters)}`
-              : "경로 계산 중…"}
+          {row.arrived ? "도착 완료" : subtitle}
         </div>
+        {!row.arrived && row.route?.summaryLabel && (
+          <div className="mt-1 text-[11px] text-slate-500">{row.route.summaryLabel}</div>
+        )}
+        {!row.arrived && row.route?.detailLabel && (
+          <div className="mt-1 text-[11px] text-slate-500">{row.route.detailLabel}</div>
+        )}
       </div>
     </div>
   );
 }
 
 function modeEmoji(mode: TravelMode) {
-  return mode === "driving" ? "🚗" : mode === "walking" ? "🚶" : "🚴";
+  return mode === "driving"
+    ? "🚗"
+    : mode === "walking"
+      ? "🚶"
+      : mode === "cycling"
+        ? "🚴"
+        : "🚇";
 }
 
 export function locationsToRows(

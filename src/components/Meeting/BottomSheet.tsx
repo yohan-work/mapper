@@ -19,6 +19,7 @@ const MODES: { id: TravelMode; label: string; emoji: string }[] = [
   { id: "driving", label: "자동차", emoji: "🚗" },
   { id: "walking", label: "도보", emoji: "🚶" },
   { id: "cycling", label: "자전거", emoji: "🚴" },
+  { id: "subway", label: "지하철", emoji: "🚇" },
 ];
 
 export default function BottomSheet({
@@ -47,6 +48,9 @@ export default function BottomSheet({
               <div className="text-xs text-slate-400 truncate">
                 {destinationLabel}
               </div>
+              {myMode === "subway" && (
+                <div className="mt-1 text-[11px] text-sky-300">지하철 추천 경로 베타</div>
+              )}
               {(visibility || joinCode) && (
                 <div className="mt-1 flex gap-2 text-[11px] text-slate-500">
                   {visibility && <span>{visibility === "public" ? "공개 약속" : "비공개 약속"}</span>}
@@ -59,7 +63,7 @@ export default function BottomSheet({
 
           {expanded && (
             <div className="px-4 pb-4 space-y-3 border-t border-slate-800">
-              <div className="flex gap-2 pt-3">
+              <div className="grid grid-cols-2 gap-2 pt-3 sm:grid-cols-4">
                 {MODES.map((m) => (
                   <button
                     key={m.id}

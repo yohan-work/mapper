@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import PlacePickerMap from "@/components/Map/PlacePickerMap";
 import PlaceSearch from "@/components/Search/PlaceSearch";
 import { ensureSession } from "@/lib/auth";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -114,9 +115,12 @@ export default function NewMeetingForm({
           {place && (
             <p className="mt-2 line-clamp-2 text-xs text-[var(--text-muted)]">
               ✓ {place.label}
+              {place.subLabel ? ` · ${place.subLabel}` : ""}
             </p>
           )}
         </div>
+
+        {!compact && <PlacePickerMap value={place} onSelect={setPlace} />}
 
         <div>
           <div className="text-sm text-[var(--text-muted)]">공개 범위</div>
