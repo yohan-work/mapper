@@ -38,6 +38,12 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
   const [fatal, setFatal] = useState<string | null>(null);
   const [travelMode, setTravelMode] = useState<TravelMode>("driving");
   const [routes, setRoutes] = useState<Record<string, Route | null>>({});
+  const [myModeEtas, setMyModeEtas] = useState<Record<TravelMode, Route | null>>({
+    driving: null,
+    walking: null,
+    cycling: null,
+    subway: null,
+  });
   const [arrivedSet, setArrivedSet] = useState<Set<string>>(new Set());
 
   const { position, error: geoError } = useMyLocation();
@@ -202,6 +208,29 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
       .join("|"),
   ]);
 
+  // 내 위치 기준 4개 모드 ETA 병렬 계산
+  useEffect(() => {
+    if (!meeting || !myPayload) return;
+    const dest = { lat: meeting.destination_lat, lng: meeting.destination_lng };
+    const modes: TravelMode[] = ["driving", "walking", "cycling", "subway"];
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        modes.map(async (m) => [m, await fetchRoute(myPayload, dest, m)] as const),
+      );
+      if (cancelled) return;
+      setMyModeEtas(Object.fromEntries(entries) as Record<TravelMode, Route | null>);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    meeting?.id,
+    Math.round((myPayload?.lat ?? 0) * 3000),
+    Math.round((myPayload?.lng ?? 0) * 3000),
+  ]);
+
   // 도착 감지 + 알림
   useEffect(() => {
     if (!meeting) return;
@@ -273,7 +302,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
   );
 
   return (
-    <main className="fixed inset-0">
+    <main className="fixed inset-0 h-[100dvh]">
       <MapView
         center={myPayload ?? undefined}
         destination={{
@@ -287,7 +316,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
         selectedMode={travelMode}
       />
       {geoError && (
-        <div className="absolute left-3 right-3 top-3 z-20 mx-auto max-w-md rounded-2xl border border-amber-200 bg-white/96 px-4 py-3 text-sm text-amber-700 shadow-[var(--shadow-float)] backdrop-blur">
+        <div className="absolute left-3 right-3 top-3 z-20 mx-auto max-w-md rounded-2xl bg-white px-4 py-3 text-sm text-amber-700 shadow-[var(--shadow-card)]">
           위치 권한이 필요합니다: {geoError}
         </div>
       )}
@@ -299,6 +328,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
         myMode={travelMode}
         onChangeMode={setTravelMode}
         rows={rows}
+        modeEtas={myModeEtas}
         onShare={onShare}
       />
     </main>

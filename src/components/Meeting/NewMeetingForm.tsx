@@ -51,9 +51,9 @@ export default function NewMeetingForm({
           destination_lat: place.lat,
           destination_lng: place.lng,
           destination_label: place.label,
-          scheduled_at: compact ? null : scheduledAt || null,
+          scheduled_at: scheduledAt || null,
           visibility,
-          status: compact ? "active" : scheduledAt ? "scheduled" : "active",
+          status: scheduledAt ? "scheduled" : "active",
         })
         .select("id, join_code")
         .single();
@@ -105,6 +105,18 @@ export default function NewMeetingForm({
           </>
         )}
 
+        {compact && (
+          <label className="block">
+            <span className="text-sm text-[var(--text-muted)]">시간 (선택)</span>
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-[var(--border-soft)] bg-white px-4 py-3 text-[var(--text-strong)] outline-none focus:border-[var(--accent)]"
+            />
+          </label>
+        )}
+
         <div>
           <span className="text-sm text-[var(--text-muted)]">
             {compact ? "목적지만 고르면 바로 생성됩니다." : "목적지"}
@@ -124,7 +136,7 @@ export default function NewMeetingForm({
 
         <div>
           <div className="text-sm text-[var(--text-muted)]">공개 범위</div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setVisibility("private")}
@@ -155,12 +167,6 @@ export default function NewMeetingForm({
             </button>
           </div>
         </div>
-
-        {compact && (
-          <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--text-muted)]">
-            제목과 시간은 약속을 만든 뒤 방 안에서 이어서 정리할 수 있습니다.
-          </div>
-        )}
 
         {error && (
           <div className="whitespace-pre-line rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

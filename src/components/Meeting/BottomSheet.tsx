@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { TravelMode } from "@/types";
+import { formatDistance, formatEta } from "@/lib/geo/osrm";
+import type { Route, TravelMode } from "@/types";
 import EtaCard, { type EtaRow } from "./EtaCard";
 
 export interface BottomSheetProps {
@@ -12,6 +13,7 @@ export interface BottomSheetProps {
   myMode: TravelMode;
   onChangeMode: (mode: TravelMode) => void;
   rows: EtaRow[];
+  modeEtas?: Record<TravelMode, Route | null>;
   onShare: () => void;
 }
 
@@ -30,59 +32,86 @@ export default function BottomSheet({
   myMode,
   onChangeMode,
   rows,
+  modeEtas,
   onShare,
 }: BottomSheetProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-      <div className="mx-auto max-w-lg px-3 pb-3 pointer-events-auto">
-        <div className="rounded-2xl bg-slate-900/95 backdrop-blur border border-slate-800 shadow-2xl">
+    <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20">
+      <div className="pointer-events-auto mx-auto max-w-lg">
+        <div className="overflow-hidden rounded-t-3xl bg-white shadow-[var(--shadow-float)]">
           <button
-            className="w-full flex items-center justify-between px-4 py-3"
+            type="button"
+            className="w-full px-4 pb-2 pt-2 text-left"
             onClick={() => setExpanded((v) => !v)}
           >
-            <div className="text-left min-w-0">
-              <div className="text-sm text-slate-400">목적지</div>
-              <div className="font-semibold truncate">{title}</div>
-              <div className="text-xs text-slate-400 truncate">
-                {destinationLabel}
-              </div>
-              {myMode === "subway" && (
-                <div className="mt-1 text-[11px] text-sky-300">지하철 추천 경로 베타</div>
-              )}
-              {(visibility || joinCode) && (
-                <div className="mt-1 flex gap-2 text-[11px] text-slate-500">
-                  {visibility && <span>{visibility === "public" ? "공개 약속" : "비공개 약속"}</span>}
-                  {joinCode && <span>참여 코드 {joinCode}</span>}
-                </div>
-              )}
+            <div className="flex justify-center pb-2">
+              <div className="h-1.5 w-10 rounded-full bg-[var(--border-soft)]" />
             </div>
-            <span className="text-slate-400 text-sm">{expanded ? "▼" : "▲"}</span>
+            <div className="truncate text-lg font-semibold text-[var(--text-strong)]">
+              {title}
+            </div>
+            <div className="truncate text-xs text-[var(--text-muted)]">
+              {destinationLabel}
+            </div>
+            {myMode === "subway" && (
+              <div className="mt-1 text-[11px] font-semibold text-[var(--accent)]">
+                지하철 추천 경로 베타
+              </div>
+            )}
+            {(visibility || joinCode) && (
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-[var(--text-muted)]">
+                {visibility && (
+                  <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1">
+                    {visibility === "public" ? "공개 약속" : "비공개 약속"}
+                  </span>
+                )}
+                {joinCode && (
+                  <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1">
+                    참여 코드 {joinCode}
+                  </span>
+                )}
+              </div>
+            )}
           </button>
 
-          {expanded && (
-            <div className="px-4 pb-4 space-y-3 border-t border-slate-800">
-              <div className="grid grid-cols-2 gap-2 pt-3 sm:grid-cols-4">
-                {MODES.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => onChangeMode(m.id)}
-                    className={`flex-1 py-2 rounded-lg text-sm border transition ${
-                      myMode === m.id
-                        ? "bg-brand border-brand text-white"
-                        : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
-                    }`}
-                  >
+          <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3">
+            {MODES.map((m) => {
+              const route = modeEtas?.[m.id] ?? null;
+              const active = myMode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => onChangeMode(m.id)}
+                  className={`shrink-0 rounded-xl px-3 py-2 text-left transition ${
+                    active
+                      ? "bg-[var(--accent)] text-white"
+                      : "bg-[var(--surface-muted)] text-[var(--text-strong)]"
+                  }`}
+                >
+                  <div className="text-xs font-semibold">
                     <span className="mr-1">{m.emoji}</span>
                     {m.label}
-                  </button>
-                ))}
-              </div>
+                  </div>
+                  <div
+                    className={`mt-0.5 text-[11px] ${active ? "text-white/90" : "text-[var(--text-muted)]"}`}
+                  >
+                    {route
+                      ? `${formatEta(route.durationSeconds)} · ${formatDistance(route.distanceMeters)}`
+                      : "계산 중"}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
-              <div className="divide-y divide-slate-800">
+          {expanded && (
+            <div className="space-y-3 border-t border-[var(--border-soft)] px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-3">
+              <div className="max-h-[40vh] space-y-2 overflow-y-auto">
                 {rows.length === 0 && (
-                  <div className="py-4 text-sm text-slate-400 text-center">
+                  <div className="rounded-2xl bg-[var(--surface-muted)] py-4 text-center text-sm text-[var(--text-muted)]">
                     위치를 받는 중…
                   </div>
                 )}
@@ -93,9 +122,9 @@ export default function BottomSheet({
 
               <button
                 onClick={onShare}
-                className="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium border border-slate-700"
+                className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-semibold text-white transition active:bg-[var(--accent-strong)]"
               >
-                🔗 링크/코드 공유
+                링크/코드 공유
               </button>
             </div>
           )}

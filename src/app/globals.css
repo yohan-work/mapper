@@ -24,8 +24,25 @@ body > nextjs-portal {
   --accent: #3182f6;
   --accent-strong: #1b64da;
   --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --border-soft: #e5e7eb;
-  --text-strong: #111827;
-  --text-muted: #6b7280;
+  --surface-muted: #f2f4f6;
+  --surface-elevated: #ffffff;
+  --border-soft: #e5e8eb;
+  --border-strong: #d1d6db;
+  --text-strong: #191f28;
+  --text-muted: #6b7684;
+  --text-soft: #8b95a1;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --shadow-float: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --scrim: rgba(0, 0, 0, 0.4);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
 }

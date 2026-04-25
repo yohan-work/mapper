@@ -6,11 +6,16 @@ import { watchPosition, type Position } from "@/lib/geo/geolocation";
 const LAST_POSITION_KEY = "mapper:last-position";
 
 export function useMyLocation() {
-  const [position, setPosition] = useState<Position | null>(() => readLastPosition());
+  const [position, setPosition] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
+    const cached = readLastPosition();
+    if (cached) {
+      setPosition(cached);
+    }
+
     const startWatch = () => {
       stopRef.current?.();
       stopRef.current = watchPosition(

@@ -18,29 +18,29 @@ export default function EtaCard({ row }: { row: EtaRow }) {
     ? `${formatEta(row.route.durationSeconds)} · ${formatDistance(row.route.distanceMeters)}${row.route.isEstimated ? " · 추정" : ""}`
     : "경로 계산 중…";
   return (
-    <div className="flex items-center gap-3 py-2">
+    <div className="flex items-start gap-3 rounded-[20px] border border-[var(--border-soft)] bg-white px-3 py-3">
       <div
-        className="w-8 h-8 rounded-full border-2 border-white/20 flex items-center justify-center text-xs font-bold text-white shrink-0"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-white/20 text-xs font-bold text-white"
         style={{ background: row.color }}
       >
         {row.displayName.slice(0, 1)}
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium truncate">
+          <span className="truncate text-sm font-semibold text-[var(--text-strong)]">
             {row.displayName}
-            {row.isMe && <span className="text-slate-400 ml-1">(나)</span>}
+            {row.isMe && <span className="ml-1 text-[var(--text-soft)]">(나)</span>}
           </span>
           <span className="text-xs">{modeEmoji(row.travelMode)}</span>
         </div>
-        <div className="text-xs text-slate-400">
+        <div className="mt-1 text-xs text-[var(--text-muted)]">
           {row.arrived ? "도착 완료" : subtitle}
         </div>
         {!row.arrived && row.route?.summaryLabel && (
-          <div className="mt-1 text-[11px] text-slate-500">{row.route.summaryLabel}</div>
+          <div className="mt-1 text-[11px] text-[var(--text-muted)]">{row.route.summaryLabel}</div>
         )}
         {!row.arrived && row.route?.detailLabel && (
-          <div className="mt-1 text-[11px] text-slate-500">{row.route.detailLabel}</div>
+          <div className="mt-1 text-[11px] text-[var(--text-soft)]">{row.route.detailLabel}</div>
         )}
       </div>
     </div>
