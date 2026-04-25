@@ -224,30 +224,6 @@ function formatSearchDate(date: Date) {
   )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-function findNumericField(input: unknown, candidates: string[]): number {
-  if (!input || typeof input !== "object") return NaN;
-
-  const queue: unknown[] = [input];
-  while (queue.length) {
-    const current = queue.shift();
-    if (!current || typeof current !== "object") continue;
-    if (Array.isArray(current)) {
-      queue.push(...current);
-      continue;
-    }
-
-    const record = current as Record<string, unknown>;
-    for (const key of candidates) {
-      const value = record[key];
-      const numeric = toNumber(value);
-      if (Number.isFinite(numeric)) return numeric;
-    }
-    queue.push(...Object.values(record));
-  }
-
-  return NaN;
-}
-
 function toNumber(value: unknown) {
   if (typeof value === "number") return value;
   if (typeof value === "string") {

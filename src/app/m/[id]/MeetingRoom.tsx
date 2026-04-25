@@ -167,7 +167,15 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
 
   const peerList = useMemo(() => Object.values(peers), [peers]);
 
-  // 경로 + ETA 계산 (me + peers 각각)
+  const myLatKey = Math.round((myPayload?.lat ?? 0) * 3000);
+  const myLngKey = Math.round((myPayload?.lng ?? 0) * 3000);
+  const peerPositionKey = peerList
+    .map(
+      (p) =>
+        `${p.userId}:${Math.round(p.lat * 3000)}:${Math.round(p.lng * 3000)}:${p.travelMode}`,
+    )
+    .join("|");
+
   useEffect(() => {
     if (!meeting) return;
     const dest = { lng: meeting.destination_lng, lat: meeting.destination_lat };
@@ -193,20 +201,8 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
     return () => {
       cancelled = true;
     };
-    // 좌표 소수 4자리 수준으로 반올림하여 과다 호출 방지
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    meeting?.id,
-    travelMode,
-    Math.round((myPayload?.lat ?? 0) * 3000),
-    Math.round((myPayload?.lng ?? 0) * 3000),
-    peerList
-      .map(
-        (p) =>
-          `${p.userId}:${Math.round(p.lat * 3000)}:${Math.round(p.lng * 3000)}:${p.travelMode}`,
-      )
-      .join("|"),
-  ]);
+  }, [meeting?.id, travelMode, myLatKey, myLngKey, peerPositionKey]);
 
   // 내 위치 기준 4개 모드 ETA 병렬 계산
   useEffect(() => {
@@ -225,11 +221,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    meeting?.id,
-    Math.round((myPayload?.lat ?? 0) * 3000),
-    Math.round((myPayload?.lng ?? 0) * 3000),
-  ]);
+  }, [meeting?.id, myLatKey, myLngKey]);
 
   // 도착 감지 + 알림
   useEffect(() => {

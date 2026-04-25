@@ -107,15 +107,15 @@ declare namespace kakao.maps {
   }
 
   namespace event {
-    function addListener(
+    function addListener<T = unknown>(
       target: object,
       type: string,
-      handler: (...args: any[]) => void,
+      handler: (event: T) => void,
     ): void;
-    function removeListener(
+    function removeListener<T = unknown>(
       target: object,
       type: string,
-      handler: (...args: any[]) => void,
+      handler: (event: T) => void,
     ): void;
   }
 
