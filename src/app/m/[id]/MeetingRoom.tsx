@@ -233,8 +233,15 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
       return;
     }
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(url).then(() => {
-        alert("링크를 복사했습니다.");
+      const text = [
+        `${meeting?.title ?? "약속"} 참여`,
+        meeting?.join_code ? `참여 코드: ${meeting.join_code}` : null,
+        url,
+      ]
+        .filter(Boolean)
+        .join("\n");
+      navigator.clipboard.writeText(text).then(() => {
+        alert("링크와 참여 코드를 복사했습니다.");
       });
     }
   }
@@ -290,6 +297,8 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
       <BottomSheet
         title={meeting.title}
         destinationLabel={meeting.destination_label}
+        visibility={meeting.visibility}
+        joinCode={meeting.join_code}
         myMode={travelMode}
         onChangeMode={setTravelMode}
         rows={rows}

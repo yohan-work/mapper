@@ -9,8 +9,8 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: #0b1220;
-  color: #e2e8f0;
+  background: #f4f6f8;
+  color: #111827;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -23,4 +23,14 @@ body > div:first-child {
 
 .maplibregl-ctrl-attrib {
   font-size: 10px;
+}
+
+:root {
+  --accent: #3182f6;
+  --accent-strong: #1b64da;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --border-soft: #e5e7eb;
+  --text-strong: #111827;
+  --text-muted: #6b7280;
 }

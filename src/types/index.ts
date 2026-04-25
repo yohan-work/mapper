@@ -1,4 +1,6 @@
 export type TravelMode = "driving" | "walking" | "cycling";
+export type MeetingVisibility = "private" | "public";
+export type MeetingStatus = "scheduled" | "active" | "closed";
 
 export interface LngLat {
   lng: number;
@@ -13,9 +15,15 @@ export interface Meeting {
   destination_lng: number;
   destination_label: string;
   scheduled_at: string | null;
-  status: "active" | "closed";
+  status: MeetingStatus;
+  visibility: MeetingVisibility;
+  join_code: string;
   share_token: string;
   created_at: string;
+}
+
+export interface MeetingSummary extends Meeting {
+  joined_at?: string;
 }
 
 export interface Participant {
