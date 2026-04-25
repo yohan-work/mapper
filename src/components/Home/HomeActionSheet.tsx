@@ -75,8 +75,8 @@ export default function HomeActionSheet({
   }
 
   return (
-    <div className="pointer-events-auto">
-      <div className="overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-float)]">
+    <div className="pointer-events-auto flex max-h-full min-h-0 flex-col">
+      <div className="flex max-h-full min-h-0 flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-float)]">
         <div className="flex items-start justify-between gap-3 px-4 py-4 sm:px-5">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ export default function HomeActionSheet({
         </div>
 
         {expanded && (
-          <>
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <div className="grid grid-cols-1 gap-2 px-3 sm:grid-cols-2">
               <button
                 onClick={() => setPanel("create")}
@@ -172,7 +172,7 @@ export default function HomeActionSheet({
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

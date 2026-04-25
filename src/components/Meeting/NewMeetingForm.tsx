@@ -80,8 +80,8 @@ export default function NewMeetingForm({
   }
 
   return (
-    <div className={className}>
-      <div className="space-y-4">
+    <div className={`w-full min-w-0 ${className ?? ""}`}>
+      <div className="w-full min-w-0 space-y-4">
         {!compact && (
           <>
             <label className="block">
@@ -99,7 +99,7 @@ export default function NewMeetingForm({
                 type="datetime-local"
                 value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--border-soft)] bg-white px-4 py-3 text-[var(--text-strong)] outline-none focus:border-[var(--accent)]"
+                className="mt-1 block w-full min-w-0 max-w-full appearance-none rounded-xl border border-[var(--border-soft)] bg-white px-4 py-3 text-[var(--text-strong)] outline-none focus:border-[var(--accent)]"
               />
             </label>
           </>
@@ -112,7 +112,7 @@ export default function NewMeetingForm({
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[var(--border-soft)] bg-white px-4 py-3 text-[var(--text-strong)] outline-none focus:border-[var(--accent)]"
+              className="mt-1 block w-full min-w-0 max-w-full appearance-none rounded-xl border border-[var(--border-soft)] bg-white px-4 py-3 text-[var(--text-strong)] outline-none focus:border-[var(--accent)]"
             />
           </label>
         )}

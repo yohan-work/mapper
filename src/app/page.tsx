@@ -241,15 +241,15 @@ function HomeMapContent() {
           onClick={() => setActiveSheet(null)}
         >
           <div
-            className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+12px)] mx-auto max-w-lg sm:inset-x-4"
+            className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+12px)] top-[max(16px,env(safe-area-inset-top))] mx-auto flex max-w-lg flex-col justify-end overflow-hidden sm:inset-x-4"
             onClick={(event) => event.stopPropagation()}
           >
             {activeSheet === "menu" && (
-              <div className="overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-float)]">
+              <div className="flex max-h-full flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-float)]">
                 <div className="flex justify-center pt-2">
                   <div className="h-1.5 w-10 rounded-full bg-[var(--border-soft)]" />
                 </div>
-                <div className="px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-3">
+                <div className="overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-3">
                   <div className="text-lg font-semibold text-[var(--text-strong)]">
                     무엇을 할까요?
                   </div>

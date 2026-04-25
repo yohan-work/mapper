@@ -27,7 +27,7 @@ export default function MyMeetingsPanel({
     meetings.find((meeting) => meeting.id === selectedMeetingId) ?? meetings[0] ?? null;
 
   return (
-    <section className="overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-float)]">
+    <section className="flex max-h-full flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-float)]">
       <div className="flex w-full items-start justify-between gap-3 px-5 py-4 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export default function MyMeetingsPanel({
       </div>
 
       {expanded && (
-        <div className="max-h-[50vh] space-y-2 overflow-auto px-3 pb-4">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-4">
           {loading && (
             <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-4 text-sm text-[var(--text-muted)]">
               약속을 불러오는 중…
