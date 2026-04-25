@@ -13,9 +13,17 @@ export async function ensureSession(): Promise<{
   color: string;
 }> {
   const sb = getSupabaseBrowser();
-  let {
-    data: { user },
-  } = await sb.auth.getUser();
+  const {
+    data: { session },
+  } = await sb.auth.getSession();
+  let user = session?.user ?? null;
+
+  if (!user) {
+    const {
+      data: { user: fetchedUser },
+    } = await sb.auth.getUser();
+    user = fetchedUser;
+  }
 
   if (!user) {
     const { data, error } = await sb.auth.signInAnonymously();

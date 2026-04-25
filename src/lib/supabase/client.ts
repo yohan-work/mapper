@@ -1,7 +1,6 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // 스키마 타입은 생략하고 any 기반 클라이언트를 쓴다. (MVP 단계)
 let _client: SupabaseClient | null = null;
@@ -15,7 +14,15 @@ export function getSupabaseBrowser(): SupabaseClient {
       "Supabase env 미설정: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY 를 .env.local 에 채워주세요.",
     );
   }
-  _client = createBrowserClient(url, anon) as unknown as SupabaseClient;
+  _client = createClient(url, anon, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: "mapper-auth",
+      storage: window.localStorage,
+    },
+  }) as unknown as SupabaseClient;
   return _client;
 }
 

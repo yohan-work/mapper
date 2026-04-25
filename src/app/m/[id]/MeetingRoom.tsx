@@ -287,7 +287,7 @@ export default function MeetingRoom({ meetingId }: { meetingId: string }) {
         selectedMode={travelMode}
       />
       {geoError && (
-        <div className="absolute top-3 left-3 right-3 z-20 mx-auto max-w-md px-4 py-2.5 rounded-xl bg-amber-900/80 border border-amber-700 text-amber-100 text-sm">
+        <div className="absolute left-3 right-3 top-3 z-20 mx-auto max-w-md rounded-2xl border border-amber-200 bg-white/96 px-4 py-3 text-sm text-amber-700 shadow-[var(--shadow-float)] backdrop-blur">
           위치 권한이 필요합니다: {geoError}
         </div>
       )}
