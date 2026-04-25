@@ -132,7 +132,7 @@ export default function NewMeetingForm({
           )}
         </div>
 
-        {!compact && <PlacePickerMap value={place} onSelect={setPlace} />}
+        <PlacePickerMap value={place} onSelect={setPlace} compact={compact} />
 
         <div>
           <div className="text-sm text-[var(--text-muted)]">공개 범위</div>

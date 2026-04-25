@@ -9,9 +9,10 @@ const DEFAULT_CENTER = { lat: 37.4979, lng: 127.0276 };
 export interface PlacePickerMapProps {
   value: PlaceSearchResult | null;
   onSelect: (place: PlaceSearchResult) => void;
+  compact?: boolean;
 }
 
-export default function PlacePickerMap({ value, onSelect }: PlacePickerMapProps) {
+export default function PlacePickerMap({ value, onSelect, compact = false }: PlacePickerMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<kakao.maps.Map | null>(null);
   const idleHandlerRef = useRef<(() => void) | null>(null);
@@ -136,12 +137,35 @@ export default function PlacePickerMap({ value, onSelect }: PlacePickerMapProps)
         지도를 드래그해 중심 핀을 움직이고 목적지를 고를 수 있습니다.
       </div>
       <div className="relative overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)]">
-        <div ref={containerRef} className="h-64 w-full" />
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="flex h-11 w-11 -translate-y-5 items-center justify-center rounded-full border-4 border-white bg-[var(--accent)] text-lg text-white shadow-[0_16px_32px_rgba(49,130,246,0.28)]">
-            📍
+        <div
+          ref={containerRef}
+          className={compact ? "h-52 w-full" : "h-64 w-full"}
+        />
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <div className="relative flex flex-col items-center">
+            <svg
+              width="36"
+              height="44"
+              viewBox="0 0 36 44"
+              className="drop-shadow-[0_6px_10px_rgba(0,0,0,0.35)]"
+              style={{ transform: "translateY(-12px)" }}
+            >
+              <path
+                d="M18 2c-8.284 0-15 6.716-15 15 0 10.5 12.5 23 14.2 24.7a1.13 1.13 0 0 0 1.6 0C20.5 40 33 27.5 33 17c0-8.284-6.716-15-15-15z"
+                fill="var(--accent)"
+                stroke="#ffffff"
+                strokeWidth="3"
+              />
+              <circle cx="18" cy="17" r="5" fill="#ffffff" />
+            </svg>
+            <div className="h-1.5 w-1.5 rounded-full bg-black/50 shadow-[0_0_4px_rgba(0,0,0,0.5)]" />
           </div>
         </div>
+        {loading && (
+          <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-[11px] font-medium text-white">
+            위치 확인 중…
+          </div>
+        )}
       </div>
       <div className="rounded-2xl border border-[var(--border-soft)] bg-white px-4 py-3">
         <div className="flex items-start justify-between gap-3">
