@@ -30,6 +30,7 @@ export default function MapView({
   const markersRef = useRef<Map<string, Marker>>(new Map());
   const destMarkerRef = useRef<Marker | null>(null);
   const fittedRef = useRef(false);
+  const initialCenterAppliedRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -163,6 +164,19 @@ export default function MapView({
       fittedRef.current = true;
     }
   }, [me, destination, peers]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !center || destination || fittedRef.current || initialCenterAppliedRef.current) {
+      return;
+    }
+    map.easeTo({
+      center: [center.lng, center.lat],
+      zoom: Math.max(map.getZoom(), 14),
+      duration: 900,
+    });
+    initialCenterAppliedRef.current = true;
+  }, [center, destination]);
 
   return <div ref={containerRef} className="w-full h-full" />;
 }

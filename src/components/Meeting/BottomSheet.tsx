@@ -7,6 +7,8 @@ import EtaCard, { type EtaRow } from "./EtaCard";
 export interface BottomSheetProps {
   title: string;
   destinationLabel: string;
+  visibility?: "private" | "public";
+  joinCode?: string | null;
   myMode: TravelMode;
   onChangeMode: (mode: TravelMode) => void;
   rows: EtaRow[];
@@ -22,6 +24,8 @@ const MODES: { id: TravelMode; label: string; emoji: string }[] = [
 export default function BottomSheet({
   title,
   destinationLabel,
+  visibility,
+  joinCode,
   myMode,
   onChangeMode,
   rows,
@@ -43,6 +47,12 @@ export default function BottomSheet({
               <div className="text-xs text-slate-400 truncate">
                 {destinationLabel}
               </div>
+              {(visibility || joinCode) && (
+                <div className="mt-1 flex gap-2 text-[11px] text-slate-500">
+                  {visibility && <span>{visibility === "public" ? "공개 약속" : "비공개 약속"}</span>}
+                  {joinCode && <span>참여 코드 {joinCode}</span>}
+                </div>
+              )}
             </div>
             <span className="text-slate-400 text-sm">{expanded ? "▼" : "▲"}</span>
           </button>
@@ -81,7 +91,7 @@ export default function BottomSheet({
                 onClick={onShare}
                 className="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium border border-slate-700"
               >
-                🔗 공유 링크 복사
+                🔗 링크/코드 공유
               </button>
             </div>
           )}

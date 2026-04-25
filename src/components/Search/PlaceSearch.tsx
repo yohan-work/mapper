@@ -38,13 +38,13 @@ export default function PlaceSearch({ onSelect, placeholder }: PlaceSearchProps)
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={placeholder ?? "목적지 검색 (예: 강남역, 서울역…)"}
-        className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-brand outline-none text-white placeholder:text-slate-500"
+        className="w-full rounded-xl border border-[var(--border-soft)] bg-white px-4 py-3 text-[var(--text-strong)] outline-none placeholder:text-slate-400 focus:border-[var(--accent)]"
       />
       {loading && (
-        <div className="absolute right-3 top-3 text-xs text-slate-400">검색중…</div>
+        <div className="absolute right-3 top-3 text-xs text-[var(--text-muted)]">검색중…</div>
       )}
       {results.length > 0 && (
-        <ul className="mt-2 max-h-72 overflow-auto rounded-xl border border-slate-700 bg-slate-900 divide-y divide-slate-800">
+        <ul className="mt-2 max-h-72 overflow-auto rounded-xl border border-[var(--border-soft)] bg-white divide-y divide-[var(--border-soft)] shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
           {results.map((r) => (
             <li key={r.id}>
               <button
@@ -53,7 +53,7 @@ export default function PlaceSearch({ onSelect, placeholder }: PlaceSearchProps)
                   setQ(r.label);
                   setResults([]);
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-slate-800 text-sm"
+                className="w-full px-4 py-2.5 text-left text-sm text-[var(--text-strong)] hover:bg-[var(--surface-muted)]"
               >
                 {r.label}
               </button>
